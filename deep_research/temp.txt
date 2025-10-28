@@ -1,0 +1,55 @@
+                                     +-----------+                                          
+                                     | __start__ |                                          
+                                     +-----------+                                          
+                                            *                                               
+                                            *                                               
+                                            *                                               
+                               +-----------------------+                                    
+                               | generate_message_plan |                                    
+                               +-----------------------+                                    
+                                            *                                               
+                                            *                                               
+                                            *                                               
+                               +------------------------+                                   
+                               | research_section_entry |                                   
+                              .+------------------------+..                                 
+                        ......              *              ......                           
+                  ......                    *                    ......                     
+               ...                          *                          ...                  
++----------------+                          *                     +----------------------+  
+| research_agent |                          *                     | compile_final_report |  
++----------------+......                    *                     +----------------------+  
+         .              ......              *                                 *             
+         .                    ......        *                                 *             
+         .                          ...     *                                 *             
++----------------+           +---------------------------+               +---------+        
+| research_tools |           | update_completed_sections |               | __end__ |        
++----------------+           +---------------------------+               +---------+        
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	generate_message_plan(generate_message_plan)
+	research_agent(research_agent)
+	research_section_entry(research_section_entry)
+	update_completed_sections(update_completed_sections)
+	compile_final_report(compile_final_report)
+	research_tools(research_tools)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> generate_message_plan;
+	compile_final_report --> __end__;
+	generate_message_plan --> research_section_entry;
+	research_tools --> research_agent;
+	update_completed_sections --> research_section_entry;
+	research_section_entry -.-> research_agent;
+	research_section_entry -.-> compile_final_report;
+	research_agent -.-> research_tools;
+	research_agent -.-> update_completed_sections;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+
+Graph
