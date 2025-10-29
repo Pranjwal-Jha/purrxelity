@@ -23,6 +23,7 @@ export default function ChatPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Fetch existing chats on component mount
   useEffect(() => {
@@ -189,13 +190,16 @@ export default function ChatPage() {
   const activeChat = chats.find((c) => c.thread_id === activeThreadId);
 
   return (
-    <ChatLayout>
+    <ChatLayout
+      isSidebarCollapsed={isSidebarCollapsed}
+      onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+    >
       <Sidebar
         chats={chats}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
-        isCollapsed={false} // You can manage this state if you want the toggle to work
+        isCollapsed={isSidebarCollapsed}
       />
       <ChatMessages messages={activeChat ? activeChat.messages : []} />
       <ChatInput

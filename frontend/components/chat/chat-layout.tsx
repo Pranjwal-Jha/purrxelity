@@ -1,10 +1,14 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { PanelLeftClose, PanelRightClose } from "lucide-react";
 
-export function ChatLayout({ children }: { children: ReactNode }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+interface ChatLayoutProps {
+  children: ReactNode;
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
+}
 
+export function ChatLayout({ children, isSidebarCollapsed, onToggleSidebar }: ChatLayoutProps) {
   // The children will be an array: [Sidebar, ChatMessages, ChatInput]
   const [sidebar, messages, input] = Array.isArray(children)
     ? children
@@ -26,7 +30,7 @@ export function ChatLayout({ children }: { children: ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            onClick={onToggleSidebar}
           >
             {isSidebarCollapsed ? (
               <PanelRightClose className="h-5 w-5" />
@@ -34,7 +38,7 @@ export function ChatLayout({ children }: { children: ReactNode }) {
               <PanelLeftClose className="h-5 w-5" />
             )}
           </Button>
-          <h1 className="text-2xl font-bold text-center flex-1">Purrxelity</h1>
+          <h1 className="text-2xl font-bold text-center flex-1">Purrxelity AI</h1>
         </header>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">{messages}</div>
         {input}
