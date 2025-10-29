@@ -5,6 +5,7 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 import { ChatInput } from "@/components/chat/chat-input";
 import { Sidebar } from "@/components/chat/sidebar";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
@@ -28,7 +29,7 @@ export default function ChatPage() {
     const fetchChats = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/users/${userId}/chats`,
+          `http://localhost:8000/users/${userId}/chats`
         );
         if (response.ok) {
           const existingChats = await response.json();
@@ -52,7 +53,7 @@ export default function ChatPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ thread_id: uuidv4(), messages: [] }),
-        },
+        }
       );
       if (response.ok) {
         const newChat = await response.json();
@@ -66,6 +67,30 @@ export default function ChatPage() {
 
   const handleSelectChat = (thread_id: string) => {
     setActiveThreadId(thread_id);
+  };
+
+  const handleDeleteChat = async (thread_id: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/users/${userId}/chats?chat_thread_id=${thread_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        toast.success("Chat successfully deleted");
+        setChats(chats.filter((chat) => chat.thread_id !== thread_id));
+        if (activeThreadId === thread_id) {
+          setActiveThreadId(chats.length > 1 ? chats[0].thread_id : null);
+        }
+      } else {
+        toast.error("Failed to delete chat");
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+      toast.error("Failed to delete chat");
+    }
   };
 
   const handleSendMessage = async () => {
@@ -84,8 +109,8 @@ export default function ChatPage() {
       chats.map((chat) =>
         chat.thread_id === activeThreadId
           ? { ...chat, messages: newMessages }
-          : chat,
-      ),
+          : chat
+      )
     );
     setInput("");
 
@@ -98,7 +123,7 @@ export default function ChatPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ input: input, thread_id: activeThreadId }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -147,7 +172,7 @@ export default function ChatPage() {
               }
             }
             return chat;
-          }),
+          })
         );
       }
     } catch (error) {
@@ -155,10 +180,8 @@ export default function ChatPage() {
       // Revert to old messages on failure
       setChats(
         chats.map((chat) =>
-          chat.thread_id === activeThreadId
-            ? { ...chat, messages: oldMessages }
-            : chat,
-        ),
+          chat.thread_id === activeThreadId ? { ...chat, messages: oldMessages } : chat
+        )
       );
     }
   };
@@ -171,6 +194,7 @@ export default function ChatPage() {
         chats={chats}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
         isCollapsed={false} // You can manage this state if you want the toggle to work
       />
       <ChatMessages messages={activeChat ? activeChat.messages : []} />

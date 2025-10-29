@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   role: "user" | "assistant";
@@ -34,7 +36,11 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                   : "bg-muted"
               }`}
             >
-              <p>{message.content}</p>
+              <div className="prose dark:prose-invert">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.content}
+                </ReactMarkdown>
+              </div>
             </Card>
             {message.role === "user" && (
               <Avatar>
