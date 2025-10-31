@@ -117,11 +117,12 @@ async def deep_research(user_input: BasicChat,user_id: int, db: AsyncSession = D
     }
     formatted_message[0]["content"] = user_input.input
     thread_id = user_input.thread_id or str(uuid.uuid4())
-    result = supervisor_graph.invoke(initial_state).get("final_report")
-    formatted_message[1]["content"] = result
+    result = supervisor_graph.invoke(initial_state)
+    final_report = result.get("final_report")
+    formatted_message[1]["content"] = final_report
     formatted_message[1]["timestamp"] = datetime.now().isoformat()
     await add_message_to_chat(user_id, thread_id, formatted_message, db)
-    return {"message": result,"thread_id":thread_id}
+    return {"message": final_report,"thread_id":thread_id}
 
 @app.post(
     "/users", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED

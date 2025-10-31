@@ -20,7 +20,6 @@ class ResearchLLM:
         self.llm = researchers
 
     def __call__(self, state: SectionState):
-        # print("Called")
         last_message = state["content"]
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -41,13 +40,12 @@ class ResearchLLM:
             ]
         )
         formatted_prompt = prompt.format_messages(input=last_message)
-        # print(formatted_prompt)
         response = self.llm.invoke(prompt.format_messages(input=last_message))
         return {"content": [response]}
 
 
-researchers = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.4)
-search_tool = TavilySearchResults(max_results=1)
+researchers = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.7)
+search_tool = TavilySearchResults(max_results=3)
 tools = [search_tool]
 agent = ResearchLLM(researchers=researchers.bind_tools(tools))
 
@@ -55,7 +53,6 @@ agent = ResearchLLM(researchers=researchers.bind_tools(tools))
 def routing_function(state: SectionState):
     last_message = state["content"][-1]
     if isinstance(last_message, AIMessage) and last_message.tool_calls:
-        # print("Tool Call")
         return "toolnode"
     else:
         return END
@@ -80,5 +77,4 @@ if __name__ == "__main__":
         "content": [HumanMessage(content="Research this topic")],
     }
     result = app.invoke(initial_state)
-    # print(f"\n{result}")
     print(f"\n{result['content'][-1].content}")

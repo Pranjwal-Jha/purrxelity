@@ -26,7 +26,7 @@ class SupervisorLLM:
             [
                 (
                     "system",
-                    "You are a report planning agent. Your task is to generate a structured plan with atmost 2 sections for a given topic. The plan should be comprehensive and well-organized",
+                    "You are a report planning agent. Your task is to generate a structured plan with atmost 6 sections for a given topic, Depending on how complex a given topic is. The plan should be comprehensive and well-organized",
                 ),
                 (
                     "human",
@@ -38,7 +38,7 @@ class SupervisorLLM:
 
         class Sections(BaseModel):
             sections: List[SectionOutput] = Field(
-                description="List of sections for report atmost 2"
+                description="List of sections for report atmost 6"
             )
 
         structured_llm = self.llm.with_structured_output(Sections)
@@ -68,12 +68,15 @@ def call_researcher(state: ReportState):
 
     # print("\n\nType of updated_section:", type(updated_section))
     # print("\n\nContent of updated_section:", updated_section)
+    i = 0
     for update in updated_section:
+        # print(f"\n{update.content}")
+        i += 1
         final_report += update.content + "\n"
+    print(i)
+    print(f"\n\nSTATE {state}")
     return {"final_report": final_report}
 
-
-# def print_final_report(state:ReportState):
 
 supervisor = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7)
 agent = SupervisorLLM(supervisor=supervisor)

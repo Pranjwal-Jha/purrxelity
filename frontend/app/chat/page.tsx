@@ -24,13 +24,14 @@ export default function ChatPage() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isDeepThink, setIsDeepThink] = useState(false);
 
   // Fetch existing chats on component mount
   useEffect(() => {
     const fetchChats = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/users/${userId}/chats`
+          `http://localhost:8000/users/${userId}/chats`,
         );
         if (response.ok) {
           const existingChats = await response.json();
@@ -54,7 +55,7 @@ export default function ChatPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ thread_id: uuidv4(), messages: [] }),
-        }
+        },
       );
       if (response.ok) {
         const newChat = await response.json();
@@ -76,7 +77,7 @@ export default function ChatPage() {
         `http://localhost:8000/users/${userId}/chats?chat_thread_id=${thread_id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (response.ok) {
@@ -105,85 +106,137 @@ export default function ChatPage() {
       { role: "user", content: input },
     ];
 
-    // Update state immediately for better UX
     setChats(
       chats.map((chat) =>
         chat.thread_id === activeThreadId
           ? { ...chat, messages: newMessages }
-          : chat
-      )
+          : chat,
+      ),
     );
     setInput("");
 
-    try {
-      const response = await fetch(
-        `http://localhost:8000/chat/stream?user_id=${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ input: input, thread_id: activeThreadId }),
-        }
+    if (isDeepThink) {
+      // Handle Deep Think API call (non-streaming)
+      const thinkingMessage: Message = {
+        role: "assistant",
+        content: "Thinking...",
+      };
+      setChats((currentChats) =>
+        currentChats.map((chat) =>
+          chat.thread_id === activeThreadId
+            ? { ...chat, messages: [...newMessages, thinkingMessage] }
+            : chat,
+        ),
       );
 
-      if (!response.ok) {
-        throw new Error("API request failed");
-      }
+      try {
+        const response = await fetch(
+          `http://localhost:8000/chat/deep_research`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ input: input, thread_id: activeThreadId }),
+          },
+        );
 
-      if (!response.body) return;
+        if (!response.ok) throw new Error("API request failed");
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let lastMessage = "";
+        const result = await response.json();
+        const finalMessage: Message = {
+          role: "assistant",
+          content: result.message,
+        };
 
-      // Find the index of the current chat to update it efficiently
-      const chatIndex = chats.findIndex((c) => c.thread_id === activeThreadId);
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        const chunk = decoder.decode(value, { stream: true });
-        lastMessage += chunk;
-
-        // Update the messages for the active chat as the stream comes in
         setChats((currentChats) =>
-          currentChats.map((chat, index) => {
-            if (index === chatIndex) {
-              // Check if the last message is from the assistant and update it
-              const lastMsg = chat.messages[chat.messages.length - 1];
-              if (lastMsg && lastMsg.role === "assistant") {
-                return {
-                  ...chat,
-                  messages: [
-                    ...chat.messages.slice(0, -1),
-                    { ...lastMsg, content: lastMessage },
-                  ],
-                };
-              } else {
-                // Otherwise, add a new assistant message
-                return {
-                  ...chat,
-                  messages: [
-                    ...chat.messages,
-                    { role: "assistant", content: lastMessage },
-                  ],
-                };
-              }
-            }
-            return chat;
-          })
+          currentChats.map((chat) =>
+            chat.thread_id === activeThreadId
+              ? { ...chat, messages: [...newMessages, finalMessage] }
+              : chat,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to fetch deep research:", error);
+        const errorMessage: Message = {
+          role: "assistant",
+          content: "Sorry, something went wrong with deep research.",
+        };
+        setChats((currentChats) =>
+          currentChats.map((chat) =>
+            chat.thread_id === activeThreadId
+              ? { ...chat, messages: [...newMessages, errorMessage] }
+              : chat,
+          ),
         );
       }
-    } catch (error) {
-      console.error("Failed to fetch:", error);
-      // Revert to old messages on failure
-      setChats(
-        chats.map((chat) =>
-          chat.thread_id === activeThreadId ? { ...chat, messages: oldMessages } : chat
-        )
-      );
+    } else {
+      // Handle regular streaming API call
+      try {
+        const response = await fetch(
+          `http://localhost:8000/chat/stream?user_id=${userId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ input: input, thread_id: activeThreadId }),
+          },
+        );
+
+        if (!response.ok) throw new Error("API request failed");
+        if (!response.body) return;
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let lastMessage = "";
+        const chatIndex = chats.findIndex(
+          (c) => c.thread_id === activeThreadId,
+        );
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          const chunk = decoder.decode(value, { stream: true });
+          lastMessage += chunk;
+
+          setChats((currentChats) =>
+            currentChats.map((chat, index) => {
+              if (index === chatIndex) {
+                const lastMsg = chat.messages[chat.messages.length - 1];
+                if (lastMsg && lastMsg.role === "assistant") {
+                  return {
+                    ...chat,
+                    messages: [
+                      ...chat.messages.slice(0, -1),
+                      { ...lastMsg, content: lastMessage },
+                    ],
+                  };
+                } else {
+                  return {
+                    ...chat,
+                    messages: [
+                      ...chat.messages,
+                      { role: "assistant", content: lastMessage },
+                    ],
+                  };
+                }
+              }
+              return chat;
+            }),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch:", error);
+        setChats(
+          chats.map((chat) =>
+            chat.thread_id === activeThreadId
+              ? { ...chat, messages: oldMessages }
+              : chat,
+          ),
+        );
+      }
     }
   };
 
@@ -206,6 +259,8 @@ export default function ChatPage() {
         input={input}
         setInput={setInput}
         handleSendMessage={handleSendMessage}
+        isDeepThink={isDeepThink}
+        onToggleDeepThink={() => setIsDeepThink(!isDeepThink)}
       />
     </ChatLayout>
   );
