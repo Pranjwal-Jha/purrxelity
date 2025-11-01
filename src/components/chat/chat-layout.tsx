@@ -1,6 +1,24 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { PanelLeftClose, PanelRightClose } from "lucide-react";
+import {
+  PanelLeftClose,
+  PanelRightClose,
+  Settings,
+  Sun,
+  Moon,
+  Laptop,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChatLayoutProps {
   children: ReactNode;
@@ -30,15 +48,39 @@ export function ChatLayout({
         </div>
       )}
       <div className="flex flex-1 flex-col border-l">
-        <header className="p-2 border-b text-center sticky top-0 bg-[#2b2b2b] z-10 flex items-center">
-          <Button variant="ghost" size="icon" onClick={onToggleSidebar}>
-            {isSidebarCollapsed ? (
-              <PanelRightClose className="h-5 w-5" />
-            ) : (
-              <PanelLeftClose className="h-5 w-5" />
-            )}
-          </Button>
-          <h1 className="text-2xl font-bold text-center flex-1">Purrxelity</h1>
+        <header className="p-2 border-b text-center sticky top-0 bg-[#2b2b2b] z-10 flex items-center justify-between">
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon" onClick={onToggleSidebar}>
+              {isSidebarCollapsed ? (
+                <PanelRightClose className="h-5 w-5" />
+              ) : (
+                <PanelLeftClose className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+          <h1 className="text-2xl font-bold text-center">Purrxelity</h1>
+          <div className="flex items-center pr-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>Light</DropdownMenuItem>
+                    <DropdownMenuItem>Dark</DropdownMenuItem>
+                    <DropdownMenuItem>System</DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuItem disabled>Export Chat</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">{messages}</div>
         {input}
@@ -46,3 +88,4 @@ export function ChatLayout({
     </main>
   );
 }
+
