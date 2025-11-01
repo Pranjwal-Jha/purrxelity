@@ -34,7 +34,7 @@ export function ChatInput({
   return (
     <div className="p-4 border-t flex justify-center">
       <div className="w-1/2">
-        <div className="rounded-lg border bg-muted focus-within:ring-1 focus-within:ring-ring">
+        <div className="rounded-none border bg-muted focus-within:ring-1 focus-within:ring-ring">
           <TextareaAutosize
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -64,7 +64,7 @@ export function ChatInput({
             </div>
             <div className="flex items-center gap-1">
               <Select defaultValue="gemini-2.5-pro">
-                <SelectTrigger className="w-[185px] border-zinc-700 rounded-md bg-muted!">
+                <SelectTrigger className="w-[185px] border-zinc-700 rounded-none bg-muted!">
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent>

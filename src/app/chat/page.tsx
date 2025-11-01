@@ -131,7 +131,7 @@ export default function ChatPage() {
 
       try {
         const response = await fetch(
-          `http://localhost:8000/chat/deep_research`,
+          `http://localhost:8000/chat/deep_research?user_id=${userId}`,
           {
             method: "POST",
             headers: {

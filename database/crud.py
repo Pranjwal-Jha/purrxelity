@@ -5,21 +5,19 @@ from sqlalchemy.orm import attributes
 from typing import List, Optional, Sequence, cast
 from . import models, schemas
 from passlib.context import CryptContext
+import sys
+from argon2 import PasswordHasher
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+ph = PasswordHasher()
 
 def verify_password(plain_pass: str, hashed_pass: str) -> bool:
-    return pwd_context.verify(plain_pass, hashed_pass)
-
+    return ph.verify(hashed_pass, plain_pass)
 
 def get_passwd_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return ph.hash(password)
 
-
-async def autheticate_user(
-    db: AsyncSession, email: str, password: str
-) -> Optional[models.User]:
+async def autheticate_user(db: AsyncSession, email: str, password: str) -> Optional[models.User]:
     user = await get_user_by_email(db, email)
     if not user:
         return None
@@ -27,8 +25,11 @@ async def autheticate_user(
         return None
     return user
 
-
 async def create_user(db: AsyncSession, user: schemas.UserCreate) -> models.User:
+    print(f"Password received in crud.create_user: '{user.password}'", file=sys.stderr)
+    print(f"Type of password: {type(user.password)}", file=sys.stderr)
+    password_bytes = user.password.encode('utf-8')
+    print(f"Byte length of password: {len(password_bytes)}", file=sys.stderr)
     hashed_passwd = get_passwd_hash(user.password)
     db_user = models.User(email=user.email, hashed_password=hashed_passwd)
     db.add(db_user)
@@ -36,11 +37,9 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate) -> models.User
     await db.refresh(db_user)
     return db_user
 
-
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[models.User]:
     result = await db.execute(select(models.User).where(models.User.id == user_id))
     return result.scalar_one_or_none()
-
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[models.User]:
     result = await db.execute(select(models.User).where(models.User.email == email))

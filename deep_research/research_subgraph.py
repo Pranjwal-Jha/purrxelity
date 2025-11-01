@@ -13,8 +13,6 @@ import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
-
-
 class ResearchLLM:
     def __init__(self, researchers):
         self.llm = researchers
@@ -34,6 +32,7 @@ class ResearchLLM:
             - Focus on facts, statistics, recent developments, definitions, or explanations relevant to the topic.
             - Highlight any discrepancies or conflicting viewpoints in the sources, if found.
             - Structure the response clearly, using paragraphs or bullet points if helpful.
+            Note: All responses will be displayed using Markdown on the frontend, so format accordingly using Markdown conventions.(e.g., use code blocks for code, lists, bold, headers, etc.).
            """
                 ),
                 MessagesPlaceholder(variable_name="input"),
@@ -43,12 +42,10 @@ class ResearchLLM:
         response = self.llm.invoke(prompt.format_messages(input=last_message))
         return {"content": [response]}
 
-
 researchers = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.7)
 search_tool = TavilySearchResults(max_results=3)
 tools = [search_tool]
 agent = ResearchLLM(researchers=researchers.bind_tools(tools))
-
 
 def routing_function(state: SectionState):
     last_message = state["content"][-1]
@@ -56,7 +53,6 @@ def routing_function(state: SectionState):
         return "toolnode"
     else:
         return END
-
 
 graph = StateGraph(SectionState)
 toolnode = ToolNode(tools, messages_key="content")
@@ -68,7 +64,6 @@ graph.add_conditional_edges(
 graph.set_entry_point("ModelReply")
 graph.add_edge("toolnode", "ModelReply")
 app = graph.compile()
-# print(app.get_graph().draw_ascii())
 
 if __name__ == "__main__":
     initial_state = {

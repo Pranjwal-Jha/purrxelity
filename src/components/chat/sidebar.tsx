@@ -39,7 +39,7 @@ export function Sidebar({
         <Button
           onClick={onNewChat}
           variant="outline"
-          className="w-full justify-center"
+          className="w-full justify-center rounded-none"
         >
           {isCollapsed ? (
             <PlusIcon className="h-5 w-5" />
@@ -54,7 +54,11 @@ export function Sidebar({
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {chats.map((chat) => (
-            <div key={chat.thread_id} className="flex items-center group">
+            // To remove the bounding box, just remove the "border" class from the div below.
+            <div
+              key={chat.thread_id}
+              className="flex items-center group border rounded-none"
+            >
               <Button
                 variant="ghost"
                 className="w-full justify-start flex-1"
@@ -79,7 +83,9 @@ export function Sidebar({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => onDeleteChat(chat.thread_id)}>
+                    <DropdownMenuItem
+                      onClick={() => onDeleteChat(chat.thread_id)}
+                    >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>

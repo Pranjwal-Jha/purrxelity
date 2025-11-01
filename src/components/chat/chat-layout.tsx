@@ -19,7 +19,7 @@ export function ChatLayout({
     : [null, children, null];
 
   return (
-    <main className="flex h-screen bg-background">
+    <main className="flex h-screen bg-[#2b2b2b]">
       {sidebar && (
         <div
           className={`transition-all duration-300 ${
@@ -30,7 +30,7 @@ export function ChatLayout({
         </div>
       )}
       <div className="flex flex-1 flex-col border-l">
-        <header className="p-2 border-b text-center sticky top-0 bg-background z-10 flex items-center">
+        <header className="p-2 border-b text-center sticky top-0 bg-[#2b2b2b] z-10 flex items-center">
           <Button variant="ghost" size="icon" onClick={onToggleSidebar}>
             {isSidebarCollapsed ? (
               <PanelRightClose className="h-5 w-5" />

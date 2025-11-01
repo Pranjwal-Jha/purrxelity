@@ -12,10 +12,10 @@ class UserUpdate(BaseModel):
     email:Optional[EmailStr]=None
     password:Optional[str]=None
 
-class UserRead(UserBase): #UserBase
+class UserRead(UserBase): 
     id:int
     creation_date:datetime
-    hashed_password:str
+    hashed_password:str #remove this in final version
     class Config:
         from_attributes=True
 

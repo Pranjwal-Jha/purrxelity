@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import { JetBrains_Mono } from "next/font/google";
+import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+
 const font = JetBrains_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
